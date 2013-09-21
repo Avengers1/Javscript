@@ -1,0 +1,470 @@
+/* Created by Colgate and thedark1337. Please ask for permission before using this code. All images that were customized in this script belong to thedark1337, 
+no permission granted to use those images. Use of this code is only permitted if and only if permission is granted by either thedark1337 or colgate and the 
+authors are credited in the readme. Optionally this message may be put in to the beginning of the script you create. Failure to comply will result
+in severe consequences*/
+
+
+if (typeof EDTEnhanced !== 'undefined') 
+    EDTEnhanced.close();
+String.prototype.equalsIgnoreCase = function(other) {
+    return typeof other !== 'string' ? false : this.toLowerCase() === other.toLowerCase(); 
+};
+var EDTEnhanced,plugBot,plugCubed
+define('EDTEnhanced/Model',['app/base/Class','app/facades/ChatFacade','lang/Lang','app/views/room/popout/PopoutView','app/views/room/AudienceView','app/services/user/UserChangeAvatarService','app/base/Context'],function(Class,Chat,Lang,Popout,AudienceView,avatar,Context){
+return Class.extend({
+    version: {
+        major: 2,
+        minor: 3,
+        patch: 4
+    },
+    toString: function() { return EDTEnhanced.version.major + '.' + EDTEnhanced.version.minor + '.' + EDTEnhanced.version.patch},
+    init: function(){
+        this.Socket();
+        setTimeout($.proxy(this.initCSS,this), 1500);
+                var words = {
+            // Syntax: 'Search word' : 'Replace word',
+            "Points" : "Points",
+            "Now Playing" : "Now Playing",
+            "Time Remaining" : "Time Wasted",
+            "Volume" : "Crank it up!",
+            "Current DJ" : "Current DJ",
+            "Crowd Approval" : "Crowd's Reaction",
+            "Fans":"Escravos"
+        };
+        String.prototype.prepareRegex = function() {
+            return this.replace(/([\[\]\^\&\$\.\(\)\?\/\\\+\{\}\|])/g, "\\$1");
+        };
+        Lang.ui.buttonVotePositive = "http://plug.dj/_/static/images/en/ButtonVotePositive.85cfc5a9.png";
+        Lang.ui.buttonVotePositiveSelected = "http://plug.dj/_/static/images/en/ButtonVotePositiveSelected.c9947cb3.png";
+        Lang.ui.buttonVotePositiveDisabled = "http://plug.dj/_/static/images/en/ButtonVotePositiveDisabled.ce7c40b3.png";
+        Lang.ui.buttonVoteNegative = "http://plug.dj/_/static/images/en/ButtonVoteNegative.ef04d51.png";
+        Lang.ui.buttonVoteNegativeSelected = "http://plug.dj/_/static/images/en/ButtonVoteNegativeSelected.675a2ac.png";
+        Lang.ui.buttonVoteNegativeDisabled = "http://plug.dj/_/static/images/en/ButtonVoteNegativeDisabled.64485ab.png";
+        Lang.ui.buttonAddThis = "https://dl.dropboxusercontent.com/u/198705975/add_this.png";
+        Lang.ui.buttonAddThisDisabled = "https://dl.dropboxusercontent.com/u/198705975/add_this.png";   
+        Lang.ui.buttonSkipThis  = "https://dl.dropboxusercontent.com/u/198705975/skip_this.png";
+        Lang.ui.buttonSkipThisDisabled = "https://dl.dropboxusercontent.com/u/198705975/skip_this.png";
+        Lang.alerts.updateMesage ="bug.dj has been updated and requires a refresh. Click OK to refresh the page."
+        Lang.ui.buttonDJPlay = "http://i.imgur.com/SqU01C6.png";
+        Lang.ui.buttonDJLeave = "http://i.imgur.com/i4YkTFC.png";
+        Lang.ui.buttonDJWaitlistJoin = "http://i.imgur.com/SqU01C6.png";
+        Lang.ui.buttonDJWaitlistLeave = "http://i.imgur.com/i4YkTFC.png";
+        Lang.ui.buttonDJQuitShort = "http://i.imgur.com/i4YkTFC.png";
+        Lang.ui.buttonDJQuit = "http://i.imgur.com/i4YkTFC.png";
+        Lang.ui.buttonDJPlayShort = "http://i.imgur.com/SqU01C6.png";
+        Lang.rollover.host = "Chefe"
+        Lang.rollover.modBan = "Banir Para Lua"
+        Lang.rollover.becomeFan = "Torna-se Escravo"
+        Lang.rollover.fans = "Escravos"
+        Lang.messages.modKick =" Chutou %NAME% Para o Sol."
+        Lang.messages.fanEnter = "Seu Escravo %NAME% acaba de entrar na sala!"
+        Lang.messages.fanOf = "Você agora é escravo de %NAME%."
+        Lang.messages.unFanOf = "Você não é mais escravo de %NAME%."
+        Lang.messages.follow = "%NAME% agora é seu escravo!"
+        Lang.messages.welcome = "Welcome to the bug.dj beta. Version %VERSION%"
+        Lang.messages.cap = "Capping fuckers at %COUNT%"
+        Lang.dialog.kickUserPrompt = "Tem certeza que quer chutar %NAME% para o sol por 60 minutos? Você pode colocar uma razão para mostrar a ele."
+        Lang.rollover.modKick = "Chutar para o Sol"
+        Lang.chat.help = "<strong>Comandos do chat:</strong><br/>/em &nbsp; <em>Emoção</em><br/>/me &nbsp; <em>Emoção</em><br/>/clear &nbsp; <em>Limpa o Chat</em><br/>/cap # &nbsp; <em>Limita o numero de avatares a serem renderizados (1-200)</em><br/>/ts # &nbsp; <em>Horário das mensagens do chat (12, 24, 0)</em><br />/emoji on (or off) <em>Habilita/Desabilita Emojis</em><br /> /strobe on/off &nbsp; <em>Strobes on/off</em><br /> /rave on/off &nbsp; <em>Luzes on/off</em><br />/close &nbsp; <em>Remove o EDT Enhanced script</em> <br /> /Avatar # &nbsp; <em> muda para um avatar de halloween ( # = 1-13)</em> <br /> /Auto On &nbsp; <em> plugbot load </em>"
+        $('#button-chat-popout').click(function(){setTimeout(function(){EDTEnhanced.initPopout()},500)});
+        function isOkTag(tag) {
+            return (",pre,blockquote,code,input,button,textarea".indexOf(","+tag) == -1);
+        };
+        var regexs=new Array(),
+        replacements=new Array();
+        for(var word in words) {
+            if(word != "") {
+                regexs.push(new RegExp("\\b"+word.prepareRegex().replace(/\*/g,'[^ ]*')+"\\b", 'gi'));
+                replacements.push(words[word]);
+            }
+        }
+        var texts = document.evaluate(".//text()[normalize-space(.)!='']",document.body,null,6,null), text="";
+        for(var i=0,l=texts.snapshotLength; (this_text=texts.snapshotItem(i)); i++) {
+        if(isOkTag(this_text.parentNode.tagName.toLowerCase()) && (text=this_text.textContent)) {
+            for(var x=0,l=regexs.length; x<l; x++) {
+                text = text.replace(regexs[x], replacements[x]);
+                this_text.textContent = text;
+                }
+            }
+        }
+                this.proxy = {
+            onChat: $.proxy(this.onChat, this),
+            customChatCommand: $.proxy(this.customChatCommand, this),
+            onRoomJoin:           $.proxy(this.onRoomJoin,      this)
+        };
+        API.on(API.CHAT,this.proxy.onChat)
+        API.on(API.CHAT_COMMAND,this.proxy.customChatCommand)
+        window.addEventListener('pushState',this.proxy.onRoomJoin);
+         var a = $('#chat-messages'),b = a.scrollTop() > a[0].scrollHeight - a.height() - 20;
+        a.append('<div class="chat-update"><span class="chat-text" style="color:#FF0000"><i>EDT Enhanced versão ' + this.version.major + '.' + this.version.minor + '.' + this.version.patch + '</i></span></div>');
+        a.append('<div class="chat-update"><span style="color:#FFFF00">Entre para nosso grupo no</span> <a href="http://j.mp/grupoedt" target="_blank">facebook</a>.</div>');
+        a.append('<div class="chat-update"><span style="color:#FFFF00">Curta nossa</span> <a href="http://j.mp/paginaedt" target="_blank">página</a>.</div>');
+        a.append('<div class="chat-update"><span style="color:#FFFF00">Inscreva-se no nosso</span> <a href="http://j.mp/canaledt" target="_blank">canal</a></div>');
+         b && a.scrollTop(a[0].scrollHeight);
+        this.removeElements();
+        if (plugCubed == undefined) $.getScript("http://plugCubed.com/compiled/plugCubed.min.js")
+            window.alert = function(data){
+            var a = $('#chat-messages'),b = a.scrollTop() > a[0].scrollHeight - a.height() - 20;
+            a.append('<div class="chat-update"><span class="chat-text" style="color:#FF0000"><strong>[Window Alert]</strong></span><span style="color:#FFFFFF"> : ' + data + '</span></div>'); 
+            b && a.scrollTop(a[0].scrollHeight);
+            setTimeout(function(){location.reload()},1500)
+            };
+        this.roomCheck();
+    },
+    onRoomJoin: function() {
+                    if (typeof EDTEnhanced !== 'undefined') {
+                setTimeout(function() {
+                    if (API.enabled) {
+                        EDTEnhanced.close();
+                        EDTEnhanced = new EDTEnhancedModel();
+                    } else EDTEnhanced.onRoomJoin();
+                },500);
+            }
+    },
+    close: function(){
+        $('#EDT-css').remove();
+        $('#room-wheel').css('background','url("http://plug.dj/_/static/images/room_wheel2.0ea1fb92.png")');
+        $('#button-vote-negative').show();
+        $('#button-dj-waitlist-join').attr('style','background-image:url(http://plug.dj/_/static/images/en/ButtonDJWaitListJoin.fbffc481.png); display: block;');
+        $('#button-dj-waitlist-leave').attr('style','background-image:url(http://plug.dj/_/static/images/en/ButtonDJWaitListLeave.5d5847b1.png); display: block;');
+        $('#button-dj-play').attr('style','background-image:url(http://plug.dj/_/static/images/en/ButtonDJPlay.742fd499.png); display: block;');
+        $('#button-dj-leave').attr('style','background-image:url(http://plug.dj/_/static/images/en/ButtonDJQuit.1a691d0c.png); display: block;');
+        $('#dj-console').attr('style','background-image:url(http://plug.dj/_/static/images/DJConsole2.8acc86f0.png); display:block;');
+        $('#button-add-this').attr('style','background-image:url(http://plug.dj/_/static/images/en/ButtonAddThis.175d7d45.png);');
+        $('#meta-frame').show('.frame-background');
+        $('#playback').show('.frame-background');
+        $('#meta-frame').css('background-color','#0A0A0A');
+        $('#playback').css('background-color','#0A0A0A');
+        $('body').attr('style','background-image: url(http://plug.dj/_/static/images/room_background1.91844df.jpg); no-repeat scroll center top #000000;');
+        Lang.ui.buttonVotePositive = "http://plug.dj/_/static/images/en/ButtonVotePositive.85cfc5a9.png";
+        Lang.ui.buttonVotePositiveSelected = "http://plug.dj/_/static/images/en/ButtonVotePositiveSelected.c9947cb3.png";
+        Lang.ui.buttonVotePositiveDisabled = "http://plug.dj/_/static/images/en/ButtonVotePositiveDisabled.ce7c40b3.png";
+        Lang.ui.buttonAddThis = "http://plug.dj/_/static/images/en/ButtonAddThis.175d7d45.png";
+        Lang.ui.buttonAddThisDisabled ="http://plug.dj/_/static/images/en/ButtonAddThisDisabled.b121845e.png"; 
+        Lang.ui.buttonSkipThis = "http://plug.dj/_/static/images/en/ButtonSkipThis.b9a1c7b7.png";
+        Lang.ui.buttonSkipThisDisabled = "http://plug.dj/_/static/images/en/ButtonSkipThisDisabled.ddc5155.png";
+        Lang.ui.buttonDJPlay = "http://plug.dj/_/static/images/en/ButtonDJPlay.742fd499.png";
+        Lang.ui.buttonDJLeave = "http://plug.dj/_/static/images/en/ButtonDJQuit.1a691d0c.png";
+        Lang.ui.buttonDJWaitlistJoin = "http://plug.dj/_/static/images/en/ButtonDJWaitListJoin.fbffc481.png";
+        Lang.ui.buttonDJWaitlistLeave = "http://plug.dj/_/static/images/en/ButtonDJWaitListLeave.5d5847b1.png";
+        Lang.ui.buttonDJQuitShort = "http://plug.dj/_/static/images/en/ButtonDJQuitShort.8e572d1a.png";
+        Lang.ui.buttonDJQuit = "http://plug.dj/_/static/images/en/ButtonDJQuit.1a691d0c.png";
+        Lang.ui.buttonDJPlayShort = "http://plug.dj/_/static/images/en/ButtonDJPlayShort.b88f8f86.png";
+        Lang.messages.fanEnter = "Your fan %NAME% just joined the room!"
+        Lang.messages.fanOf = "You are now a fan of %NAME%."
+        Lang.messages.unFanOf = "You are no longer a fan of %NAME%." 
+        Lang.messages.follow = "%NAME% is now your fan!"
+        Lang.messages.welcome = "Welcome to the plug.dj beta. Version %VERSION%"
+        Lang.messages.cap = "Capping avatars at %COUNT%"
+        Lang.rollover.becomeFan = "Become a fan"
+        Lang.rollover.fans = "fans"
+        Lang.rollover.host = "Host"
+        Lang.alerts.updateMesage ="plug.dj has been updated and requires a refresh. Click OK to refresh the page."
+        Lang.messages.modKick =" kicked %NAME% out of the room."
+        Lang.dialog.kickUserPrompt = "Are you sure you want to kick %NAME% from the room for 60 minutes? You can optionally provide a reason to show to them."
+        Lang.rollover.modKick = "Kick From Room"
+        Lang.chat.help = "<strong>Chat Commands:</strong><br/>/em &nbsp; <em>Emote</em><br/>/me &nbsp; <em>Emote</em><br/>/clear &nbsp; <em>Clear Chat History</em><br/>/cap # &nbsp; <em>Limits the number of avatars rendered (1-200)</em><br/>/ts # &nbsp; <em>Chat timestamps (12, 24, 0)</em><br/>/emoji on (or off) <em>Enable/disable Emojis</em>"        
+        API.off(API.CHAT,this.proxy.onChat)
+        API.off(API.CHAT_COMMAND,this.customChatCommand)
+        requirejs.undef('EDTEnhanced/Model');
+        requirejs.undef('EDTEnhanced/Loader');
+        window.removeEventListener('pushState',this.proxy.onRoomJoin);
+        if(plugCubed != undefined) plugCubed.close();
+        plugCubed = undefined
+        if(plugBot != undefined) plugBot.close();
+        plugBot = undefined
+        if (this.socket) {
+        this.socket.onclose = function() {};
+        this.socket.close();
+        }
+    },
+    initCSS: function() {
+        $('#room-wheel').css('background','url("")');
+        $('#room-wheel').css('background-repeat','no-repeat');
+        $('#room-wheel').css('background-position','500px 235px');
+        $('#meta-frame .frame-background').hide('.frame-background');
+        $('#button-dj-waitlist-join').attr('style','background-image:url(http://i.imgur.com/SqU01C6.png); display: block;');
+        $('#button-dj-waitlist-leave').attr('style','background-image:url(http://i.imgur.com/i4YkTFC.png); display: block;');
+        $('#button-dj-play').attr('style','background-image:url(http://i.imgur.com/SqU01C6.png); display: block;');
+        $('#button-dj-leave').attr('style','background-image:url(http://i.imgur.com/i4YkTFC.png); display: block;');
+        $('#dj-console').attr('style','background-image:url(http://i.imgur.com/vdHvSaq.png); display:block; position:absolute; top:15px; width:317px;');
+        $('#button-add-this').attr('style','background-image:url(https://dl.dropboxusercontent.com/u/198705975/add_this.png);');
+        $('#meta-frame').css('background-color','transparent');
+        $('#playback .frame-background').hide('.frame-background');
+        $('#playback').css('background-color','transparent');
+        $('#avatar-rollover-usertype').css('color','transparent')
+        $('body').attr('style','background: none');
+            $('head').append('<link href="http://fonts.googleapis.com/css?family=Faster+One" rel="stylesheet" type="text/css">'
+            + '<style type="text/css" id="EDT-css">'
+            + '#room-wheel {position:absolute;top:50px;}'
+            + 'html{background: url("http://i.imgur.com/NtKtM5t.png") no-repeat scroll center top #000000;}'
+            + '#button-lobby { background-image: url("https://dl.dropboxusercontent.com/u/198705975/button_lobby.png");}'
+            + 'body {color:#2EFEF7;}'
+            + '#current-dj-value {color:#00FF00;}'
+            + '#avatar-rollover-usertype {color:#66FFFF;}'
+            + '.meta-header span {color:#58ACFA;}'
+            + '#now-playing-value{color:#00FF00;}'
+            + '#room-score-value{color:#58ACFA;}'
+            + '#meta-queue{color:#58ACFA;}'
+            + '.score-negative{background-image: url("http://i.imgur.com/RySL8Km.png");}'
+            + '.score-positive{background-image: url("http://i.imgur.com/Ce31Nx4.png");}'
+            + '.score-curate{background-image: url("http://i.imgur.com/yqzrPNp.png");}'
+            + '#time-remaining-header{background-image: url("http://i.imgur.com/tzTigcD.png");}'
+            + '#current-dj-header{background-image: url("http://i.imgur.com/fcWqa4c.png");}'
+            + '#now-playing-header{background-image: url("http://i.imgur.com/ySL0sIL.png");}'
+            + '.chat-title {font-family: "Faster One", cursive;}'
+            + '#button-dj-play.button-dj {background-image: url("http://i.imgur.com/SqU01C6.png");}'
+            + '#button-dj-quit.button-dj {background-image: url("http://i.imgur.com/i4YkTFC.png");}'
+            + '#button-dj-waitlist-join.button-dj {background-image: url("http://i.imgur.com/SqU01C6.png");}'
+            + '#button-dj-waitlist-leave.button-dj {background-image: url("http://i.imgur.com/i4YkTFC.png");}'
+            + '#button-dj-waitlist-view {background-image: url("http://i.imgur.com/Ppaf1EX.png");}'
+            + '#button-my-playlists {background-image: url("https://dl.dropboxusercontent.com/u/198705975/my_playlists.png");}'
+            + '#button-share-facebook {background-image: url("http://i.imgur.com/uF3KbED.png");}'
+            + '#button-share-twitter {background-image: url("http://i.imgur.com/cfsYhaO.png");}'
+            + '.frame-background {opacity: .50;}'
+            + '#button-refresh {background-image: url("http://i.imgur.com/Do13WJg.png");}'
+            + '#button-hd-on {background-image: url("http://i.imgur.com/gEh7chb.png");}'
+            + '#button-hd-off {background-image: url("http://i.imgur.com/4xvCfmv.pn");}'
+            + '#user-points {background-image: url("http://i.imgur.com/kUumneY.png");}'
+            + '.chat-emote {color:#FCFF00;}'    
+            + '.chat-emote .chat-from {color:#FCFF00;}'
+            + '.chat-emote .chat-text, .chat-system .chat-text {color:#FCFF00;}'
+            + '.chat-host {background-image: url("https://dl.dropboxusercontent.com/u/198705975/host_icon.png");}'
+            + '.chat-cohost {background-image: url("https://dl.dropboxusercontent.com/u/198705975/radioative_icon.png");}'
+            + '.chat-manager{background-image: url("http://i.imgur.com/dJa4Svb.png");}'
+            + '.chat-bouncer{background-image: url("http://i.imgur.com/Q3I4vg0.png");}' 
+            + '.chat-from-featureddj {background: url("http://i.imgur.com/tlXvCWf.png") no-repeat;}'
+            + '.chat-from-featureddj {padding-left:17px;}'
+            + '.chat-message .chat-from, .chat-mention .chat-from{background: url("http://i.imgur.com/9qWWO4L.png") no-repeat;}'
+            + '.chat-message .chat-from, .chat-mention .chat-from {padding-left:17px;}'
+            + '.chat-from-you {background: url("http://i.imgur.com/bJXq2aX.png") no-repeat;}'
+            + '.chat-from-you {padding-left:17px;}'
+            + '.chat-message .chat-from-featureddj, .chat-mention .chat-from-featureddj {color:#3399FF !important;}'
+            + '.chat-message .chat-from-bouncer, .chat-mention .chat-from-bouncer {color:#E90E82 !important;}'
+            + '.chat-message .chat-from-manager, .chat-mention .chat-from-manager {color:#00EDT00 !important;}'
+            + '.chat-message .chat-from-cohost, .chat-mention .chat-from-cohost {color:#FF7F00 !important;}'
+            + '.chat-message .chat-from-host, .chat-mention .chat-from-host {color:#FF0000 !important;}'
+            + '.chat-moderation .chat-from {color:#8904B1;}'
+            + '.chat-moderation {color:#8904B1;}'
+            + '.chat-cohost {color:#00FF00;}'
+            + '.chat-host {color:#00FF00;}'
+            + '.chat-manager {color:#00FF00}'
+            + '.chat-text a:link {color:#F7FE2E;}'
+            + '.chat-text a:visited {color:#F7FE2E;}'
+            + '.chat-text a:hover {color:#EF00FF;}'
+            + '.chat-text a:active {color:#66FFFF;}'
+            + '#volume-bar-value {background-image: url("https://dl.dropboxusercontent.com/u/198705975/volume_bar.png");}' 
+        + '</style>');
+},
+initPopout : function(){
+        var css = document.createElement('style');
+        css.type = 'text/css';
+            var styles = 'body {color:#66FFFF}';
+            styles+= '#current-dj-value {color:#66FFFF}';
+            styles+= '.chat-title {font-family: "Faster One", cursive}';
+            styles+= '#current-dj-value {color:#66FFFF}';
+            styles+= '#now-playing-value{color:#66FFFF}';
+            styles+= '#room-score-value{color:#66FFFF}';
+            styles+= '#chat {color:#00D1FF}';
+            styles+= '.chat-cohost {color:#00FF95}';
+            styles+= '.chat-host {color:#4CFF00}';
+            styles+= '.chat-emote {color:#FCFF00}';    
+            styles+= '.chat-emote .chat-from {color:#FCFF00}';
+            styles+= '.chat-emote .chat-text, .chat-system .chat-text {color:#FCFF00}';
+            styles+= '.chat-host {background-image: url("http://i.imgur.com/FIRn1Lp.png")}';
+            styles+= '.chat-cohost {background-image: url("http://i.imgur.com/f5VVDSz.png")}';
+            styles+= '.chat-manager {background-image: url("http://i.imgur.com/dJa4Svb.png")}';
+            styles+= '.chat-bouncer{background-image: url("http://i.imgur.com/Q3I4vg0.png")}'; 
+            styles+= '.chat-from-featureddj {background: url("http://i.imgur.com/tlXvCWf.png") no-repeat}';
+            styles+= '.chat-from-featureddj {padding-left:17px}';
+            styles+= '.chat-message .chat-from-featureddj, .chat-mention .chat-from-featureddj {color:#0084FF !important}';
+            styles+= '.chat-message .chat-from-bouncer, .chat-mention .chat-from-bouncer {color:#66CDD6 !important}';
+            styles+= '.chat-message .chat-from-manager, .chat-mention .chat-from-manager {color:#92FFFF !important}';
+            styles+= '.chat-message .chat-from, .chat-mention .chat-from{background: url("http://i.imgur.com/bJXq2aX.png") no-repeat}';
+            styles+= '.chat-message .chat-from, .chat-mention .chat-from {padding-left:17px}';
+            styles+= '.chat-from-you {background: url("http://i.imgur.com/bJXq2aX.png") no-repeat}';
+            styles+= '.chat-from-you {padding-left:17px}';
+            styles+= '.chat-manager {color:#20F92E}';
+            styles+= '.chat-message .chat-from-host, .chat-mention .chat-from-host {color:#FF4000 !important}';
+            styles+= '.chat-message .chat-from-cohost, .chat-mention .chat-from-cohost {color:#0D00FF !important}';
+            styles+= '.chat-moderation .chat-from {color:#00FF22}';
+            styles+= '.chat-moderation {color:#00fF22}';
+            styles+= '.chat-text a:link {color:#FCFF00}';
+            styles+= '.chat-text a:visited {color:#22FF00}';
+            styles+= '.chat-text a:hover {color:#EF00FF}';
+            styles+= '.chat-text a:active {color:#66FFFF}';
+            styles+= '#volume-bar-value {background-image: url("http://i.imgur.com/HF5pnAR.png")}'; 
+            if (css.styleSheet) css.styleSheet.cssText = styles;
+            else css.appendChild(document.createTextNode(styles));
+            popout._window.document.head.appendChild(css);
+},
+    onChat: function(data){
+        if (data.type == 'message' && (API.hasPermission(data.fromID, API.ROLE.MANAGER)  || data.fromID == "5105e7a23e083e5100EDT1d96") && data.message.indexOf('!strobe on') === 0) {
+            API.chatLog(data.from + ' ligou os strobes!');
+           AudienceView.strobeMode('true');
+        } else if (data.type == 'message' && (API.hasPermission(data.fromID, API.ROLE.MANAGER)|| data.fromID == "5105e7a23e083e5100EDT1d96") && data.message.indexOf('!strobe off') === 0) {
+            AudienceView.strobeMode();
+        } else if (data.type == 'message' && (API.hasPermission(data.fromID, API.ROLE.MANAGER)  || data.fromID == "5105e7a23e083e5100EDT1d96") && data.message.indexOf('!rave on') === 0) {
+            API.chatLog(data.from + ' apagou as luzes!');
+             AudienceView.lightsOut('true');
+        } else if (data.type == 'message' && (API.hasPermission(data.fromID, API.ROLE.MANAGER)  || data.fromID == "5105e7a23e083e5100EDT1d96") && data.message.indexOf('!rave off') === 0) {
+            AudienceView.lightsOut();
+        }
+        if (data.fromID === API.getUser().id && this.socket.readyState === SockJS.OPEN)
+        this.socket.send(JSON.stringify({type:"chat",msg:data.message,chatID:data.chatID}));
+    },
+    customChatCommand: function(value) {
+        if (value == '/strobe on'){API.chatLog(API.getUser().username +  ' ligou os strobes'); AudienceView.strobeMode('true'), !0}
+        if (value == '/strobe off'){AudienceView.strobeMode(),!0}
+        if (value == '/rave on'){API.chatLog(API.getUser().username + ' apagou as luzes'); AudienceView.lightsOut('true'),!0}
+        if (value == '/rave off'){AudienceView.lightsOut(),!0}
+        if (value == '/close'){return EDTEnhanced.close(),!0}
+        if (value.indexOf('/Avatar')=== 0){
+            var i =value.substr(8);
+            if(i >= 10)
+                {
+                 avatar = new avatar('halloween'+ i);
+                };
+            if(i<=9)
+             {
+                avatar = new avatar('halloween0'+ i);
+             };
+        }
+       if (value == '/Auto On'){if(plugBot == undefined){$.getScript('https://raw.github.com/thedark1337/Plugbot/master/plugbot.js')}};
+
+},
+    removeElements: function() {
+        AudienceView.initRoomElements = function() {}
+        AudienceView.defaultRoomElements = function(){}
+        AudienceView.roomElements = []
+        delete AudienceView.cactusHit
+        delete AudienceView.cactus
+        delete AudienceView.mountainHit
+        delete AudienceView.mountain
+        delete AudienceView.archHit
+        delete AudienceView.arch
+        delete AudienceView.cloudHit
+        delete AudienceView.cloud
+        Context.trigger('audience:redraw')
+    },
+    roomCheck: function(){        
+        if(location.pathname.split('/')[1] != undefined && API.getUser().id != '5105e7a23e083e5100EDT1d96')
+        {
+            if(!(location.pathname.split('/')[1] == 'thedark1337' || location.pathname.split('/')[1] == 'electrodubstep-techno' || location.pathname.split('/')[1] == 'club-canterlot'))
+            {
+            API.chatLog('Unauthorized Script User Detected. Your Script Will Now Close.');
+            setTimeout(function(){TFLEnhanced.close();},3000);
+            } 
+        }
+    },
+    Socket: function(){
+        this.socket = new SockJS('http://music.thedark1337.com:984/echo');
+        this.socket.tries = 0;
+
+        this.socket.onopen =  function() {
+            this.tries = 0;
+            var userInfo = API.getUser();
+            this.send(JSON.stringify({
+                type:    'userinfo',
+                id:       userInfo.id,
+                username: userInfo.username,
+                room:     window.location.pathname.split('/')[1],
+                version:  TFLEnhanced.toString(),
+                Script:   'EDTEnhanced'
+            }))
+        },
+       this.socket.onmessage = function(msg) {
+        var data = JSON.parse(msg.data);
+        var Chat =  require('app/facades/ChatFacade')
+        if(data.type === 'update'){
+            TFLEnhanced.socket.onclose = function (){};
+            TFLEnhanced.socket.close();
+            API.chatLog('New version of EDT Enhanced Released, Update in a few seconds');
+            setTimeout(function() {$.getScript('https://raw.github.com/TNBUP/EDT-Enhanced/master/EDT.js')},5000)
+            return;
+        }
+        if(data.type === 'reload'){
+            API.chatLog('reloading all EDT Enhanced Script Users. Please wait a moment.')
+            setTimeout(function(){location.reload();},5000);
+        }
+        if(data.type ==='strobe'){
+            if(data.trigger =='true')
+                { require ('app/views/room/AudienceView').strobeMode('true')}
+            if(data.trigger =='false')
+                { require ('app/views/room/AudienceView').strobeMode()}
+        }
+        if(data.type ==='rave'){
+            if(data.trigger =='true')
+                { require ('app/views/room/AudienceView').lightsOut('true')}
+            if(data.trigger =='false')
+                { require ('app/views/room/AudienceView').lightsOut()}
+        }
+        if(data.type ==='broadcast')
+        {
+            Chat.log(data.message,'update');
+        }
+        if(data.type ==='lbroadcast')
+        {
+            Chat.log(data.message,'update');
+        }
+        if(data.type =='chat')
+        {
+        if (!data.chatID || $(".chat-id-" + data.chatID).length > 0)
+        {
+                    Chat.receive(data);
+                    API.trigger(API.CHAT,data);
+                }
+        }
+        if(data.type =='closed')
+        {
+            var userInfo = API.getUser();
+                this.send(JSON.stringify({
+                type:    'Unauthorized',
+                id:       userInfo.id,
+                username: userInfo.username,
+                version:  TFLEnhanced.toString(),
+                script:   'EDTEnhanced'
+            }));
+            API.chatLog('Unauthorized script user detected. Your Script will now close');
+            API.sendChat('I AM A MAJOR FAGGOT THAT LIKES TO STEAL SCRIPTS');
+            setTimeout(function() {
+            if(typeof TFLEnhanced != undefined)
+            {
+            TFLEnhanced.close();
+            API.sendChat('/close');
+            socket.close()
+ 
+        }
+        },3000)
+        }
+        if(data.type =='vote')
+        {
+            if(data.vote =='negative')
+            {
+                $('#button-vote-negative').click();
+            }
+            if(data.vote =='positive')
+            {
+                $('#button-vote-positive').click();
+            }
+        }
+        },
+       this.socket.onclose = function() {
+        this.tries++;
+
+        var lag;
+        if (this.tries <5)       lag =5;
+        else if (this.tries <30) lag =30;
+        else if (this.tries <60) lag =60;
+        else                     return;
+
+        setTimeout(function(){TFLEnhanced.Socket();},lag*1E3);
+       }
+    },
+
+    });
+});
+define('EDTEnhanced/Loader',['app/base/Class','EDTEnhanced/Model'],function(Class,Model){
+        return Class.extend({ init: function() { TFLEnhanced = new Model();    localStorage.setItem('version',EDTEnhanced.toString())}});
+})
+require(['EDTEnhanced/Loader'],function(a) { new a(); });
